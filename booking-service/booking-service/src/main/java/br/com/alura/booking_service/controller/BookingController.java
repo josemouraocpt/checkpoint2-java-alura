@@ -4,10 +4,12 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,6 +46,7 @@ public class BookingController {
         }
     }
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}/cancel")
     public ResponseEntity<String> cancel(@PathVariable String id){
         try {
@@ -54,10 +57,11 @@ public class BookingController {
         }
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/create")
-    public ResponseEntity<String> create(@RequestBody @Valid CreateBookingDto dto){
+    public ResponseEntity<String> create(@RequestBody @Valid CreateBookingDto dto, @RequestHeader("Authorization") String token){
         try {
-            service.createBooking(dto);
+            service.createBooking(dto, token);
             return ResponseEntity.status(HttpStatus.CREATED).body("Reserva cadastrada com sucesso!");
         } catch (ValidationException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

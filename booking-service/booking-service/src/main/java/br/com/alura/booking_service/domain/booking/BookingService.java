@@ -36,8 +36,8 @@ public class BookingService {
     }
 
     @Transactional
-    public void createBooking(CreateBookingDto dto) {
-        boolean roomIsInactive = verifyRoom(dto.idRoom());
+    public void createBooking(CreateBookingDto dto, String authorization) {
+        boolean roomIsInactive = verifyRoom(dto.idRoom(), authorization);
 
         if(roomIsInactive){
             throw new ValidationException("A sala informada está Inativa!");
@@ -83,9 +83,9 @@ public class BookingService {
         return optional.orElseThrow(() -> new ValidationException("Reserva não encontrada!"));
     }
 
-    private boolean verifyRoom(Long id){
+    private boolean verifyRoom(Long id, String authorization){
         try {
-            var response = room.findRoom(id);
+            var response = room.findRoom(id, authorization);
             ObjectMapper mapper = new ObjectMapper();
             JsonNode jsonNode = mapper.readTree(response.getBody());
             if(jsonNode.get("status").asText().equals("INACTIVE")){

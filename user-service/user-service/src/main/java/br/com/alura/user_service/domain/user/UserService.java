@@ -3,18 +3,24 @@ package br.com.alura.user_service.domain.user;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import br.com.alura.user_service.infra.exception.ValidationException;
 import jakarta.transaction.Transactional;
 
 @Service 
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository repository;
+    private final PasswordEncoder encoder;
 
-    public UserService(UserRepository repository) {
+    public UserService(UserRepository repository, PasswordEncoder encoder) {
         this.repository = repository;
+        this.encoder = encoder;
     }
 
     @Transactional
@@ -34,7 +40,8 @@ public class UserService {
         if (alreadyRegistred){
             throw new ValidationException("E-mail já cadastrado para outro usuário!");
         }
-        repository.save(new User(dto));
+        String encodedPassword = encoder.encode(dto.password());
+        repository.save(new User(dto, encodedPassword));
     }
 
     @Transactional
@@ -53,5 +60,10 @@ public class UserService {
             throw new ValidationException("O id fornecido não é válido!");
         }
         return optional.orElseThrow(() -> new ValidationException("Usuário não encontrado!"));
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return repository.findByEmailIgnoreCase(username).orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado!"));
     }
 }

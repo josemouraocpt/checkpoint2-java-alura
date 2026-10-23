@@ -1,7 +1,13 @@
 package br.com.alura.user_service.domain.user;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,7 +25,7 @@ import lombok.Setter;
 @Getter 
 @Setter 
 @NoArgsConstructor 
-public class User {
+public class User implements UserDetails {
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,11 +37,11 @@ public class User {
     private Profile role;
     private String password;
 
-    public User(RegisterUserDto dto) {
+    public User(RegisterUserDto dto, String encodedPassword) {
         this.name = dto.name();
         this.email = dto.email();
         this.role = dto.role();
-        this.password = dto.password();
+        this.password = encodedPassword;
         this.token = UUID.randomUUID().toString();
         this.expirationToken = LocalDateTime.now().plusMinutes(30);
     }
@@ -43,5 +49,15 @@ public class User {
     public void updateData(UpdateUserDto dto) {
         this.name = dto.name();
         this.email = dto.email();
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singleton(new SimpleGrantedAuthority("ROLE_" + role));
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
     }
 }
