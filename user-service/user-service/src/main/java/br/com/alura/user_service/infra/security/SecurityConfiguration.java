@@ -28,7 +28,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http){
         return http
                 .authorizeHttpRequests(req -> {
-                    req.requestMatchers("/login").permitAll();
+                    req.requestMatchers("/login/**").permitAll();
                     req.anyRequest().authenticated();
                 })
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
